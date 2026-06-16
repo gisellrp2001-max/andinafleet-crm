@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Andina Fleet · CRM Minero</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{--bg:#eef3f7;--card:#fff;--card2:#f6f9fc;--line:#dbe4ec;--text:#162331;--muted:#63778b;--faint:#9aaaba;--navy:#071f3b;--navy2:#123a66;--blue:#1768e0;--cyan:#12b7c9;--green:#1fa15b;--amber:#e2962e;--red:#d6483b;--gray:#8aa0b3;--shadow:0 10px 28px rgba(7,31,59,.09);--radius:14px;--font:'Inter',sans-serif;--display:'Sora',sans-serif;--mono:'JetBrains Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;overflow:auto}.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:linear-gradient(120deg,var(--navy),var(--navy2));color:white;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:12px}.logo{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.2);display:grid;place-items:center;background:rgba(255,255,255,.08);color:var(--cyan)}.logo svg{width:22px}.brand h1{font-family:var(--display);font-size:20px}.brand p{font-size:11px;color:rgba(255,255,255,.58);letter-spacing:1.2px;text-transform:uppercase;font-family:var(--mono)}
+.search{flex:1;min-width:230px}.search input{width:100%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.09);color:white;border-radius:999px;padding:10px 14px;outline:none}.search input::placeholder{color:rgba(255,255,255,.55)}
+.btn{border:1px solid var(--blue);background:var(--blue);color:white;padding:9px 13px;border-radius:9px;font-weight:700;cursor:pointer;font-family:var(--font);font-size:12px}.btn:hover{filter:brightness(.92)}.btn.gray{background:white;color:var(--navy);border-color:rgba(255,255,255,.35)}.btn.danger{background:var(--red);border-color:var(--red)}.btn.light{background:var(--card2);color:var(--navy);border-color:var(--line)}.btn.small{padding:6px 10px;font-size:11px}
+.kpis{display:flex;gap:8px;flex-wrap:wrap}.kpi{min-width:92px;text-align:center;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:rgba(255,255,255,.06);padding:7px 12px}.kpi .n{font-family:var(--display);font-size:19px;color:var(--cyan)}.kpi .l{font-size:10px;color:rgba(255,255,255,.58);text-transform:uppercase}
+.layout{flex:1;display:grid;grid-template-columns:320px 1fr;align-items:start}.side{background:var(--card);border-right:1px solid var(--line);padding:15px;overflow:auto;position:sticky;top:0;max-height:100vh}.main{padding:15px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:visible}
+label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.7px;margin:8px 0 5px}select,input,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:var(--card2);padding:9px 10px;font:inherit;color:var(--text);outline:none}textarea{min-height:76px;resize:vertical}select:focus,input:focus,textarea:focus{border-color:var(--blue)}
+.notice{background:#fff7e8;border:1px solid #ffd9a1;border-radius:12px;padding:12px;margin-bottom:12px;color:#84520b;font-size:12px}.title{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;font-weight:800;color:var(--muted);margin:14px 0 8px}.entity{border:1px solid var(--line);border-radius:13px;background:white;padding:11px;margin-bottom:8px;cursor:pointer}.entity:hover,.entity.active{border-color:var(--blue);box-shadow:var(--shadow)}.entity.active{background:#edf5ff}.entity .name{font-family:var(--display);font-size:13px;color:var(--navy)}.entity .meta{font-size:11px;color:var(--muted);margin-top:2px}.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.badge{font-size:10px;border-radius:999px;padding:3px 8px;font-weight:800}.b-blue{background:#e9f2ff;color:var(--blue)}.b-green{background:#e8f7ef;color:var(--green)}.b-amber{background:#fff4e3;color:var(--amber)}.b-gray{background:#eef2f6;color:var(--gray)}.b-red{background:#fdebea;color:var(--red)}
+.mapWrap{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;min-height:360px;flex:0 0 auto}.mapTop{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);gap:8px}.mapTop strong{font-family:var(--display);color:var(--navy)}#map{height:340px;width:100%}.mapWrap.hidden{display:none}.detail{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:visible;display:flex;flex-direction:column;flex:0 0 auto}.head{padding:18px 20px;border-bottom:1px solid var(--line)}.head h2{font-family:var(--display);color:var(--navy);font-size:20px}.head p{color:var(--muted);font-size:12px;margin-top:3px}.tabs{display:flex;gap:3px;border-bottom:1px solid var(--line);padding:0 14px;overflow:auto}.tab{border:0;background:transparent;padding:12px 13px;font-family:var(--display);font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.6px}.tab.active{color:var(--blue);border-bottom:3px solid var(--blue)}.content{padding:18px 20px;overflow:visible}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid.two{grid-template-columns:repeat(2,1fr)}.box{border:1px solid var(--line);border-radius:13px;background:var(--card2);padding:14px}.box .v{font-family:var(--display);font-weight:800;font-size:22px;color:var(--blue)}.box .l{font-size:11px;color:var(--muted);margin-top:4px}.box .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:800;margin-bottom:5px}.box .value{font-weight:800;color:var(--navy)}.mono{font-family:var(--mono)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid var(--line);padding:9px;font-size:12px}th{font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.8px}.formGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.full{grid-column:1/-1}
+.lineas{display:flex;flex-direction:column;gap:16px}.linea-card{border:1px solid var(--line);border-radius:14px;background:white;padding:16px;box-shadow:var(--shadow)}.linea-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}.linea-head h3{font-family:var(--display);font-size:16px;color:var(--navy)}.linea-head .sub{font-size:11px;color:var(--muted);margin-top:2px}.linea-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.divider{border-top:1px solid var(--line);margin:15px 0 13px;padding-top:13px}.section-title{font-family:var(--display);font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}.last-sale{border-left:4px solid var(--blue);background:#edf5ff;border-radius:10px;padding:12px;margin-bottom:10px}.last-sale .amount{font-family:var(--display);font-size:17px;font-weight:800;color:var(--navy)}.last-sale .date{font-family:var(--mono);font-size:11px;color:var(--muted)}.last-sale .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.sale-history{display:none;margin:8px 0 12px}.sale-history.show{display:block}.sale-item{border-bottom:1px solid var(--line);padding:8px 0;display:flex;justify-content:space-between;gap:10px}.sale-item:last-child{border-bottom:0}.sale-item .amount{font-family:var(--display);font-weight:800;color:var(--navy)}
+.activity{border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:13px;background:white;padding:12px;margin-top:10px;display:flex;justify-content:space-between;gap:12px}.activity.done{border-left-color:var(--green)}.activity.process{border-left-color:var(--blue)}.small{font-size:11px;color:var(--muted)}.actions{display:flex;gap:7px;align-items:flex-start;flex-wrap:wrap}.empty{text-align:center;color:var(--muted);padding:26px}
+.leaflet-container{z-index:1}.modalBack{position:fixed;inset:0;background:rgba(7,31,59,.56);display:none;align-items:center;justify-content:center;padding:20px;z-index:2147483000;backdrop-filter:blur(2px)}.modal{background:white;border-radius:18px;box-shadow:0 30px 110px rgba(7,31,59,.34);max-width:450px;width:100%;padding:22px;position:relative;z-index:2147483001;border:1px solid var(--line)}.modal h3{font-family:var(--display);color:var(--navy);margin-bottom:7px}.modal p{color:var(--muted);margin-bottom:16px}.modalBtns{display:flex;justify-content:flex-end;gap:8px}
+
+/* ===== Mejoras UX: menos carga visual, actividades principales ===== */
+.dashboard-entity{display:grid;grid-template-columns:1.2fr repeat(3,1fr);gap:12px;margin-bottom:14px}.hero-box{border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#f8fbff,#eef6ff);padding:16px}.hero-box .hero-title{font-family:var(--display);font-size:13px;color:var(--navy);margin-bottom:8px}.hero-box .hero-value{font-family:var(--display);font-size:28px;color:var(--blue);font-weight:800}.hero-box .hero-sub{font-size:12px;color:var(--muted);margin-top:4px}.dash-card{border:1px solid var(--line);border-radius:16px;background:var(--card2);padding:15px}.dash-card .n{font-family:var(--display);font-size:25px;font-weight:800;color:var(--navy)}.dash-card .l{font-size:11px;color:var(--muted);margin-top:4px}.line-mini{height:9px;background:#e6edf4;border-radius:999px;overflow:hidden;margin-top:8px}.line-mini span{display:block;height:100%;background:var(--blue);border-radius:999px}.summary-panel{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.quick-list{display:flex;flex-direction:column;gap:8px}.quick-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:7px;font-size:12px}.quick-row:last-child{border-bottom:0;padding-bottom:0}.lineas{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.linea-card{box-shadow:none}.linea-card textarea{min-height:58px}.linea-fields{grid-template-columns:1fr}.op-intro{border:1px solid #cfe1f3;background:#f4f9ff;border-radius:14px;padding:13px 15px;margin-bottom:12px;color:var(--navy)}.op-intro p{font-size:12px;color:var(--muted);margin-top:3px}.hint-line{font-size:11px;color:var(--muted);margin-top:3px}.divider,.last-sale,.sale-history,.sale-item{display:none!important}.activity-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.activity-controls{display:flex;align-items:end;gap:8px;flex-wrap:wrap}.activity-filter{min-width:150px}.activity-filter label{margin:0 0 4px}.activity-filter select{padding:7px 9px;background:white}.activity-form-card{display:none;margin-bottom:12px}.activity-form-card.show{display:block}.activity{position:relative;transition:transform .15s,box-shadow .15s,background .15s}.activity:hover{transform:translateY(-1px);box-shadow:var(--shadow)}.activity.done{border-left-color:var(--green);background:#f3fbf6;border-color:#cbeed9}.activity.done::after{display:none}.activity.process{background:#f4f8ff}.activity .status-chip{font-size:10px;border-radius:999px;padding:3px 8px;font-weight:800;display:inline-flex;align-items:center;gap:4px}.activity.done .status-chip::before{content:'✓';font-weight:900}.activity.done .actions{min-width:90px;justify-content:flex-end}.activity.done .actions .btn.danger{opacity:1;visibility:visible;position:relative;z-index:3}.status-pend{background:#fff4e3;color:var(--amber)}.status-proc{background:#e9f2ff;color:var(--blue)}.status-done{background:#e8f7ef;color:var(--green)}
+.op-intro{border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#f8fbff,#eef6ff);padding:14px 16px;margin-bottom:12px}.op-intro b{font-family:var(--display);color:var(--navy)}.op-intro p{font-size:12px;color:var(--muted);margin-top:3px}.linea-card{background:linear-gradient(180deg,#fff,#fbfdff)}
+@media(max-width:1180px){.dashboard-entity{grid-template-columns:repeat(2,1fr)}.lineas{grid-template-columns:1fr}}
+@media(max-width:720px){.dashboard-entity,.summary-panel{grid-template-columns:1fr}}
+
+@media(max-width:980px){.app{height:auto}.layout{grid-template-columns:1fr}.side{position:relative;top:auto;max-height:360px}.main{display:flex;flex-direction:column}.grid,.grid.two,.formGrid,.linea-fields{grid-template-columns:1fr}.full{grid-column:auto}}
+
+
+/* =========================================================
+   VOLVO GROUP PERÚ · UI CLEAN OVERRIDE
+   Enfoque: lectura rápida, menos carga visual y acciones claras
+========================================================= */
+:root{
+  --bg:#F3F6F9;
+  --card:#FFFFFF;
+  --card2:#F7FAFC;
+  --line:#D8E1EA;
+  --text:#0B1F33;
+  --muted:#5D7287;
+  --navy:#071F3B;
+  --navy2:#0A2E57;
+  --blue:#1251A4;
+  --cyan:#28C7D8;
+  --green:#168750;
+  --amber:#C9841C;
+  --red:#C73D32;
+  --gray:#7E93A8;
+  --radius:12px;
+  --shadow:0 8px 24px rgba(7,31,59,.08);
+}
+body{background:var(--bg);font-size:14px;color:var(--text)}
+.topbar{
+  background:#071F3B;
+  border-bottom:4px solid #28C7D8;
+  padding:13px 22px;
+  gap:16px;
+}
+.brand{min-width:290px}.logo{
+  width:42px;height:42px;border-radius:9px;
+  background:#0C315C;border:1px solid rgba(255,255,255,.18);
+  color:#8FDBE7;font-family:var(--display);font-size:14px;font-weight:800;
+}
+.logo span{letter-spacing:.4px}.brand h1{font-size:19px;line-height:1.1;color:#FFFFFF}.brand p{font-size:10px;letter-spacing:1.4px;color:#9DB6CE;margin-top:4px}
+.search{max-width:460px}.search input{
+  height:42px;border-radius:10px;background:#0C315C;border-color:#395D80;color:#FFFFFF;
+  padding-left:16px;font-size:13px;
+}
+.search input:focus{border-color:#28C7D8;box-shadow:0 0 0 3px rgba(40,199,216,.18)}
+.btn{border-radius:9px;height:38px;padding:0 15px;background:#1251A4;border-color:#1251A4;box-shadow:none}.btn.gray{background:#FFFFFF;color:#071F3B;border-color:#FFFFFF}.btn.light{background:#F7FAFC;border-color:#D8E1EA;color:#0B1F33}.btn.danger{background:#C73D32;border-color:#C73D32}.btn.small{height:auto;padding:7px 11px}
+.kpi{background:#0C315C;border-color:#395D80;border-radius:10px;min-width:88px;padding:7px 11px}.kpi .n{color:#28C7D8}.kpi .l{color:#A9BED3}
+.layout{grid-template-columns:300px 1fr}.side{background:#FFFFFF;border-right:1px solid var(--line);padding:16px;box-shadow:4px 0 18px rgba(7,31,59,.03)}
+.notice{background:#F4F8FB;border:1px solid #D8E1EA;color:#3D5268;border-left:4px solid #28C7D8;padding:11px;border-radius:10px;font-size:11.5px;line-height:1.35}
+label,.title{color:#5D7287;font-size:10.5px;letter-spacing:1.1px}select,input,textarea{border-radius:9px;background:#FFFFFF;border-color:#CCD8E3}select:hover,input:hover,textarea:hover{border-color:#A9BED3}
+.entity{border-radius:10px;margin-bottom:9px;padding:12px;border-color:#D8E1EA;box-shadow:none}.entity:hover{box-shadow:0 6px 18px rgba(7,31,59,.07)}.entity.active{background:#F2F8FE;border-color:#1251A4;border-left:5px solid #1251A4}.entity .name{font-size:13px}.entity .meta{font-size:10.8px}.badge{font-size:10px;padding:3px 7px;border-radius:7px}
+.main{padding:16px;gap:14px}.mapWrap,.detail{border-radius:12px;box-shadow:var(--shadow);border-color:#D8E1EA}.mapWrap{min-height:300px}.mapTop{height:42px;padding:0 15px;background:#FFFFFF}.mapTop strong{font-size:13px}#map{height:300px}.head{padding:18px 20px 14px}.head h2{font-size:21px}.head p{font-size:12px;color:#5D7287}
+.tabs{background:#F9FBFD;padding:0 18px;border-top:1px solid #EEF2F5}.tab{padding:13px 12px;font-size:11.5px;color:#5D7287}.tab.active{color:#1251A4;border-bottom-color:#1251A4}.content{padding:18px 20px 22px}
+.dashboard-entity{grid-template-columns:1.15fr repeat(3,1fr);gap:10px}.hero-box,.dash-card,.box{border-radius:12px;border-color:#D8E1EA;background:#FFFFFF;box-shadow:none}.hero-box{background:linear-gradient(135deg,#FFFFFF,#F2F8FE);border-left:4px solid #1251A4}.hero-box .hero-value,.box .v{color:#1251A4}.dash-card .n{color:#071F3B}.summary-panel{gap:10px}.quick-row{font-size:12px}
+.lineas{grid-template-columns:repeat(3,1fr);gap:12px}.linea-card{border-radius:12px;background:#FFFFFF;box-shadow:none;border-color:#D8E1EA}.linea-head h3{font-size:15px}.op-intro{background:#F4F8FB;border-left:4px solid #1251A4;border-color:#D8E1EA}
+table{background:#FFFFFF;border-radius:10px;overflow:hidden}th{background:#F7FAFC;color:#5D7287}td{font-size:12px}
+.activity-toolbar{border:1px solid #D8E1EA;border-radius:12px;padding:12px;background:#FFFFFF;margin-bottom:12px}.activity-toolbar h3{font-size:16px}.activity-controls{gap:10px}.activity-filter select{min-width:145px}.activity-form-card .box{background:#F7FAFC;border-color:#D8E1EA}
+.activity{border-radius:12px;background:#FFFFFF;border-color:#D8E1EA;padding:14px 14px 14px 16px;align-items:flex-start}.activity b{font-size:14px;color:#0B1F33}.activity p{margin-top:7px;line-height:1.35}.activity.done{background:#F1FAF5;border-color:#BFE8D0;border-left-color:#168750}.activity.process{background:#F3F7FD;border-color:#C9DCF5}.activity .actions{margin-left:auto}.status-chip{letter-spacing:.3px}.status-done{background:#DDF4E8!important;color:#168750!important}.status-proc{background:#E6F0FB!important;color:#1251A4!important}.status-pend{background:#FFF1D9!important;color:#C9841C!important}
+.modalBack{z-index:2147483000}.modal{border-radius:14px}.modalBtns .btn{height:38px}
+@media(max-width:1180px){.dashboard-entity{grid-template-columns:repeat(2,1fr)}.lineas{grid-template-columns:1fr}.layout{grid-template-columns:280px 1fr}}
+@media(max-width:980px){.brand{min-width:auto}.layout{grid-template-columns:1fr}.side{position:relative;max-height:none}.mapWrap{min-height:260px}#map{height:260px}.topbar{gap:10px}.search{max-width:none}.dashboard-entity,.summary-panel{grid-template-columns:1fr}}
+
+/* ===== Ajuste final solicitado: recuperar encabezado Andina Fleet y quitar línea celeste ===== */
+.topbar{
+  background:linear-gradient(120deg,#071F3B 0%,#123A66 100%)!important;
+  border-bottom:0!important;
+  box-shadow:0 8px 22px rgba(7,31,59,.16);
+}
+.brand{min-width:300px!important}
+.logo{
+  width:40px!important;height:40px!important;border-radius:12px!important;
+  background:rgba(255,255,255,.08)!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+  color:#28C7D8!important;
+  display:grid!important;place-items:center!important;
+}
+.logo svg{width:22px!important;height:22px!important}
+.brand h1{font-size:20px!important;color:#fff!important;letter-spacing:.2px!important}
+.brand p{font-size:10.5px!important;color:rgba(255,255,255,.62)!important;letter-spacing:1.4px!important;font-family:var(--mono)!important}
+.search input{border-radius:999px!important;background:rgba(255,255,255,.09)!important;border-color:rgba(255,255,255,.22)!important}
+.search input:focus{border-color:#28C7D8!important;box-shadow:0 0 0 3px rgba(40,199,216,.12)!important}
+.notice{border-left:0!important;background:#FFF7E8!important;border-color:#FFD9A1!important;color:#84520B!important}
+.tabs{border-top:0!important;background:#FFFFFF!important}
+.tab.active{border-bottom-color:#1251A4!important;color:#1251A4!important}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="14" stroke="currentColor" stroke-width="3"/><path d="M20 20L32 8M25 8h7v7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></div>
+    <div><h1>Andina Fleet</h1><p>CRM · Sector Minero</p></div>
+  </div>
+  <div class="search"><input id="search" placeholder="Buscar RUC, empresa, mina o modelo..." /></div>
+  <button class="btn gray" onclick="toggleMap()" id="toggleMapBtn">Ocultar mapa</button>
+  <button class="btn gray" onclick="document.getElementById('csvFile').click()">Importar CSV</button>
+  <input type="file" id="csvFile" accept=".csv" style="display:none" />
+  <div class="kpis" id="kpis"></div>
+</header>
+<div class="layout">
+  <aside class="side">
+    <div class="notice"><b>Datos:</b> <span id="dataMode">Demo/local</span><br>Para uso real, activa <b>SP_CONFIG</b> y conecta listas SharePoint.</div>
+    <label>Región</label><select id="fRegion"></select>
+    <label>Línea</label><select id="fLinea"><option value="all">Todas</option><option>Camiones</option><option>Buses</option><option>VCE</option></select>
+    <label>Estado actividad</label><select id="fEstado"><option value="all">Todas</option><option value="Pendiente">Pendiente</option><option value="En proceso">En proceso</option><option value="Completada">Completada</option></select>
+    <div class="title">Entidades mineras</div><div id="entityList"></div>
+  </aside>
+  <main class="main">
+    <section class="mapWrap" id="mapWrap"><div class="mapTop"><strong>Mapa de operaciones mineras · Perú</strong><span class="small">Leaflet + coordenadas Lat/Long</span></div><div id="map"></div></section>
+    <section class="detail" id="detail"></section>
+  </main>
+</div>
+</div>
+<div class="modalBack" id="modalBack"><div class="modal"><h3 id="modalTitle">Confirmar acción</h3><p id="modalText">¿Deseas continuar?</p><div class="modalBtns"><button class="btn light" onclick="closeModal()">Cancelar</button><button class="btn danger" id="confirmDeleteBtn">Sí, eliminar</button></div></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const SP_CONFIG = {
+  enabled: true,
+  // IMPORTANTE: solo va el sitio base, no el link de la lista ni el link de vista previa del HTML.
+  siteUrl: "https://volvogroup.sharepoint.com/sites/unit-comercial-camiones-peru",
+  lists: {
+    flota: "CRM_Flota",
+    actividades: "CRM_Actividades",
+    estado: "CRM_EstadoVolvo",
+    entidades: "CRM_Entidades"
+  }
+};
+
+const DEPT_COORDS={
+  'amazonas':[-5.07,-78.05],'ancash':[-9.52,-77.53],'áncash':[-9.52,-77.53],'apurimac':[-13.63,-72.88],'apurímac':[-13.63,-72.88],
+  'arequipa':[-16.40,-71.54],'ayacucho':[-13.16,-74.22],'cajamarca':[-7.16,-78.51],'callao':[-12.05,-77.12],
+  'cusco':[-13.52,-71.97],'huancavelica':[-12.78,-74.97],'huanuco':[-9.93,-76.24],'huánuco':[-9.93,-76.24],
+  'ica':[-14.07,-75.73],'junin':[-11.16,-75.99],'junín':[-11.16,-75.99],'la libertad':[-8.11,-79.03],
+  'lambayeque':[-6.77,-79.84],'lima':[-12.05,-77.04],'loreto':[-3.75,-73.25],'madre de dios':[-12.59,-69.19],
+  'moquegua':[-17.19,-70.93],'pasco':[-10.68,-76.26],'piura':[-5.19,-80.63],'puno':[-15.84,-70.02],
+  'san martin':[-6.49,-76.36],'san martín':[-6.49,-76.36],'tacna':[-18.01,-70.25],'tumbes':[-3.57,-80.45],'ucayali':[-8.38,-74.55]
+};
+function cleanKey(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function deptCoord(region){return DEPT_COORDS[cleanKey(region)] || [-9.19,-75.02];}
+const LINEAS=["Camiones","Buses","VCE"];
+const demoFlota=[
+{RUC:'20100000001',Empresa:'Compañía Minera Antamina S.A.',Mina:'Antamina',Region:'Áncash',Latitud:-9.53,Longitud:-77.03,Linea:'Camiones',Marca:'Volvo',Modelo:'FH 540 8x4',Placa:'A1B-234',Estado:'Operativo',Ubicacion:'Patio mina',Contacto:'Jorge Salazar',Cargo:'Jefe de Logística',Correo:'j.salazar@antamina.com',Telefono:'+51 943 221 100'},
+{RUC:'20100000001',Empresa:'Compañía Minera Antamina S.A.',Mina:'Antamina',Region:'Áncash',Latitud:-9.53,Longitud:-77.03,Linea:'Buses',Marca:'Mercedes-Benz',Modelo:'O500 RS',Placa:'B3D-118',Estado:'Operativo',Ubicacion:'Campamento',Contacto:'Jorge Salazar',Cargo:'Jefe de Logística',Correo:'j.salazar@antamina.com',Telefono:'+51 943 221 100'},
+{RUC:'20100000002',Empresa:'Sociedad Minera Cerro Verde S.A.A.',Mina:'Cerro Verde',Region:'Arequipa',Latitud:-16.61,Longitud:-71.55,Linea:'Camiones',Marca:'Volvo',Modelo:'FMX 460 8x4',Placa:'C4E-552',Estado:'Operativo',Ubicacion:'Concentradora',Contacto:'Lucía Fernández',Cargo:'Gerente de Flota',Correo:'l.fernandez@cerroverde.com.pe',Telefono:'+51 954 778 320'},
+{RUC:'20100000002',Empresa:'Sociedad Minera Cerro Verde S.A.A.',Mina:'Cerro Verde',Region:'Arequipa',Latitud:-16.61,Longitud:-71.55,Linea:'VCE',Marca:'Volvo',Modelo:'Cisterna FMX',Placa:'V7K-310',Estado:'Operativo',Ubicacion:'Combustibles',Contacto:'Lucía Fernández',Cargo:'Gerente de Flota',Correo:'l.fernandez@cerroverde.com.pe',Telefono:'+51 954 778 320'},
+{RUC:'20100000003',Empresa:'MMG Las Bambas',Mina:'Las Bambas',Region:'Apurímac',Latitud:-14.08,Longitud:-72.45,Linea:'Camiones',Marca:'Scania',Modelo:'G 410 6x4',Placa:'C8H-477',Estado:'Operativo',Ubicacion:'Ferrobamba',Contacto:'Renzo Vidal',Cargo:'Coordinador de Transporte',Correo:'r.vidal@lasbambas.com',Telefono:'+51 962 401 887'}];
+const demoLineas={
+'20100000001':{Camiones:{EstadoRelacion:'Cliente activo',Valor:0,Nota:'Contrato marco de mantenimiento vigente hasta 2027.'},Buses:{EstadoRelacion:'En negociación',Valor:185000,Nota:'Evaluando renovación de la flota de transporte de personal.'},VCE:{EstadoRelacion:'Sin oportunidad',Valor:0,Nota:'Sin necesidad identificada por ahora.'}},
+'20100000002':{Camiones:{EstadoRelacion:'Cliente activo',Valor:0,Nota:'Cliente desde 2019. Buen historial.'},Buses:{EstadoRelacion:'Sin oportunidad',Valor:0,Nota:'Flota de buses gestionada por proveedor local.'},VCE:{EstadoRelacion:'Cliente activo',Valor:0,Nota:'Cisternas bajo contrato de servicio.'}},
+'20100000003':{Camiones:{EstadoRelacion:'Cliente activo',Valor:0,Nota:'Mayor cliente de la cartera.'},Buses:{EstadoRelacion:'Prospecto',Valor:240000,Nota:'RFQ recibido para buses de personal.'},VCE:{EstadoRelacion:'Prospecto',Valor:95000,Nota:'Interés en grúas de auxilio mecánico.'}}
+};
+const demoVentas=[
+{RUC:'20100000001',LineaNegocio:'Camiones',Fecha:'2025-11-12',Responsable:'José Tang',Unidades:6,Monto:1850000,Comentario:'Renovación de 6 unidades Volvo FH dentro del contrato marco.'},
+{RUC:'20100000001',LineaNegocio:'Camiones',Fecha:'2024-03-20',Responsable:'José Tang',Unidades:18,Monto:5200000,Comentario:'Compra inicial de flota para operación.'},
+{RUC:'20100000002',LineaNegocio:'VCE',Fecha:'2025-08-02',Responsable:'Andrea Paredes',Unidades:3,Monto:540000,Comentario:'Venta de 3 cisternas Volvo FMX.'}
+];
+let flota=JSON.parse(localStorage.getItem('crm_flota')||'null')||demoFlota;
+let actividades=JSON.parse(localStorage.getItem('crm_actividades')||'[]');
+let lineas=JSON.parse(localStorage.getItem('crm_lineas')||'null')||demoLineas;
+let ventas=JSON.parse(localStorage.getItem('crm_ventas')||'null')||demoVentas;
+let selectedRuc=null,activeTab='resumen',map,markers=[],filters={search:'',region:'all',linea:'all',estado:'all'},activityLineFilter='all',pendingDelete=null;
+const $=id=>document.getElementById(id);
+function esc(v){return String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+function money(n){return 'S/ '+(Number(n)||0).toLocaleString('es-PE')}
+function saveLocal(){localStorage.setItem('crm_flota',JSON.stringify(flota));localStorage.setItem('crm_actividades',JSON.stringify(actividades));localStorage.setItem('crm_lineas',JSON.stringify(lineas));localStorage.setItem('crm_ventas',JSON.stringify(ventas));}
+function normRow(r){
+  const region=r.Region||r.Región||r.Departamento||r.departamento||'';
+  const coord=deptCoord(region);
+  const lat=Number(r.Latitud||r.latitud||0)||coord[0];
+  const lng=Number(r.Longitud||r.longitud||0)||coord[1];
+  return {
+    ID:r.ID,
+    RUC:r.RUC||r.Ruc||r.ruc||'',
+    Empresa:r.Empresa||r.Title||'',
+    Mina:r.Mina||'',
+    Region:region,
+    Latitud:lat,
+    Longitud:lng,
+    Linea:r.Linea||r.Línea||r.LineaNegocio||r['Línea']||'',
+    Marca:r.Marca||'',
+    Modelo:r.Modelo||'',
+    Placa:r.Placa||'',
+    Estado:r.Estado||'',
+    Ubicacion:r.Ubicacion||r.Ubicación||r.UbicacionActual||'',
+    Contacto:r.Contacto||'',
+    Cargo:r.Cargo||'',
+    Correo:r.Correo||r.Email||'',
+    Telefono:r.Telefono||r.Teléfono||''
+  };
+}
+function entidades(){const m=new Map();flota.forEach(r=>{const x=normRow(r);if(!x.RUC)return;if(!m.has(x.RUC))m.set(x.RUC,{RUC:x.RUC,Empresa:x.Empresa,Mina:x.Mina,Region:x.Region,Latitud:x.Latitud,Longitud:x.Longitud,Contacto:x.Contacto,Cargo:x.Cargo,Correo:x.Correo,Telefono:x.Telefono});});return [...m.values()];}
+function fleetByRuc(ruc){return flota.map(normRow).filter(x=>x.RUC===ruc)}
+function actsByRuc(ruc){return actividades.filter(a=>a.RUC===ruc)}
+function ventasBy(ruc,linea){return ventas.filter(v=>v.RUC===ruc&&v.LineaNegocio===linea).sort((a,b)=>(b.Fecha||'').localeCompare(a.Fecha||''))}
+function counts(ruc){const c={Camiones:0,Buses:0,VCE:0};fleetByRuc(ruc).forEach(x=>{if(c[x.Linea]!==undefined)c[x.Linea]++});return c}
+function ensureLineas(ruc){if(!lineas[ruc])lineas[ruc]={};LINEAS.forEach(l=>{if(!lineas[ruc][l])lineas[ruc][l]={EstadoRelacion:counts(ruc)[l]?'Cliente activo':'Sin oportunidad',Valor:0,Nota:''}});return lineas[ruc]}
+function filteredEntidades(){return entidades().filter(e=>{const f=fleetByRuc(e.RUC),a=actsByRuc(e.RUC);const text=(e.RUC+' '+e.Empresa+' '+e.Mina+' '+e.Region+' '+f.map(x=>x.Modelo+' '+x.Marca+' '+x.Placa).join(' ')).toLowerCase();if(filters.search&&!text.includes(filters.search.toLowerCase()))return false;if(filters.region!=='all'&&e.Region!==filters.region)return false;if(filters.linea!=='all'&&!f.some(x=>x.Linea===filters.linea))return false;if(filters.estado!=='all'&&!a.some(x=>x.Estado===filters.estado))return false;return true})}
+function spListUrl(list){
+  const safe=String(list||'').replace(/'/g,"''");
+  return `${SP_CONFIG.siteUrl}/_api/web/lists/getbytitle('${safe}')/items`;
+}
+async function spGet(list){
+  if(!list) return [];
+  const url=`${spListUrl(list)}?$top=5000&_=${Date.now()}`;
+  const res=await fetch(url,{
+    method:'GET',
+    headers:{'Accept':'application/json;odata=nometadata'},
+    credentials:'include',
+    cache:'no-store'
+  });
+  if(!res.ok) throw new Error(`Lista ${list}: ${res.status} ${await res.text()}`);
+  return (await res.json()).value||[];
+}
+async function spDigest(){
+  const res=await fetch(`${SP_CONFIG.siteUrl}/_api/contextinfo`,{
+    method:'POST',headers:{'Accept':'application/json;odata=nometadata'},credentials:'include'
+  });
+  if(!res.ok) throw new Error(`contextinfo: ${res.status} ${await res.text()}`);
+  const j=await res.json();
+  return j.FormDigestValue || (j.d && j.d.GetContextWebInformation && j.d.GetContextWebInformation.FormDigestValue);
+}
+async function spPost(list,body){
+  const d=await spDigest();
+  const res=await fetch(spListUrl(list),{
+    method:'POST',
+    headers:{'Accept':'application/json;odata=nometadata','Content-Type':'application/json;odata=nometadata','X-RequestDigest':d},
+    credentials:'include',
+    body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(`Crear en ${list}: ${res.status} ${await res.text()}`);
+  return await res.json();
+}
+async function spMerge(list,id,body){
+  if(!id) return;
+  const d=await spDigest();
+  const res=await fetch(`${spListUrl(list)}(${id})`,{
+    method:'POST',
+    headers:{'Accept':'application/json;odata=nometadata','Content-Type':'application/json;odata=nometadata','X-RequestDigest':d,'IF-MATCH':'*','X-HTTP-Method':'MERGE'},
+    credentials:'include',
+    body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(`Actualizar ${list}: ${res.status} ${await res.text()}`);
+}
+async function spDelete(list,id){
+  const d=await spDigest();
+  const res=await fetch(`${spListUrl(list)}(${id})`,{
+    method:'POST',
+    headers:{'X-RequestDigest':d,'IF-MATCH':'*','X-HTTP-Method':'DELETE'},
+    credentials:'include'
+  });
+  if(!res.ok) throw new Error(`Eliminar de ${list}: ${res.status} ${await res.text()}`);
+}
+async function trySpGet(key){
+  try{ return await spGet(SP_CONFIG.lists[key]); }
+  catch(e){ console.warn(`No se pudo leer ${key}:`, e); return null; }
+}
+async function loadData(){
+  if(!SP_CONFIG.enabled){ $('dataMode').textContent='Demo/local'; return; }
+  $('dataMode').textContent='Conectando...';
+
+  const flotaRows=await trySpGet('flota');
+  const actRows=await trySpGet('actividades');
+  const estadoRows=await trySpGet('estado');
+  const entidadRows=await trySpGet('entidades');
+
+  const anyConnected = [flotaRows,actRows,estadoRows,entidadRows].some(x=>Array.isArray(x));
+  if(!anyConnected){
+    throw new Error('No se pudo leer ninguna lista. Revisa que el HTML esté abierto desde el sitio SharePoint y no desde vista previa/local.');
+  }
+
+  if(Array.isArray(flotaRows) && flotaRows.length){
+    flota=flotaRows.map(normRow);
+  } else if(Array.isArray(entidadRows) && entidadRows.length){
+    // Permite probar conexión aunque aún no tengas CRM_Flota cargada.
+    flota=entidadRows.map(r=>normRow({...r, Linea:r.Linea||'Camiones', Marca:r.Marca||'', Modelo:r.Modelo||'', Placa:r.Placa||'', Estado:r.Estado||'', Ubicacion:r.Ubicacion||''}));
+  }
+
+  if(Array.isArray(actRows)){
+    actividades=actRows.map(x=>({
+      ID:x.ID,
+      RUC:x.RUC,
+      Empresa:x.Empresa||x.Title,
+      Fecha:(x.Fecha||'').slice(0,10),
+      TipoActividad:x.TipoActividad,
+      LineaNegocio:x.LineaNegocio||x.Linea,
+      Responsable:x.Responsable && x.Responsable.Title ? x.Responsable.Title : (x.Responsable||''),
+      Estado:x.Estado,
+      Descripcion:x.Descripcion,
+      ProximaAccion:x.ProximaAccion,
+      FechaCierre:(x.FechaCierre||'').slice(0,10)
+    }));
+  }
+
+  if(Array.isArray(estadoRows)){
+    lineas={};
+    estadoRows.forEach(x=>{
+      const linea=x.LineaNegocio||x.Linea;
+      if(!x.RUC || !linea) return;
+      if(!lineas[x.RUC]) lineas[x.RUC]={};
+      lineas[x.RUC][linea]={ID:x.ID,EstadoRelacion:x.EstadoRelacion||'Sin oportunidad',Valor:x.Valor||0,Nota:x.Nota||x.Observacion||x.ProximaAccion||''};
+    });
+  }
+
+  $('dataMode').textContent='SharePoint conectado';
+}
+function initMap(){map=L.map('map').setView([-9.19,-75.02],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map)}
+function renderMap(){if(!map)return;markers.forEach(m=>m.remove());markers=[];filteredEntidades().forEach(e=>{if(!e.Latitud||!e.Longitud)return;const c=counts(e.RUC);const m=L.marker([e.Latitud,e.Longitud]).addTo(map).bindPopup(`<b>${esc(e.Empresa)}</b><br>${esc(e.Mina)} · ${esc(e.Region)}<br>Camiones: ${c.Camiones} · Buses: ${c.Buses} · VCE: ${c.VCE}<br><button onclick="selectEntity('${esc(e.RUC)}')">Ver detalle</button>`);markers.push(m)})}
+function toggleMap(){const w=$('mapWrap');w.classList.toggle('hidden');$('toggleMapBtn').textContent=w.classList.contains('hidden')?'Mostrar mapa':'Ocultar mapa';setTimeout(()=>map&&map.invalidateSize(),100)}
+function renderFilters(){const regs=[...new Set(entidades().map(e=>e.Region).filter(Boolean))].sort();$('fRegion').innerHTML='<option value="all">Todas</option>'+regs.map(r=>`<option ${filters.region===r?'selected':''}>${esc(r)}</option>`).join('');$('fLinea').value=filters.linea;$('fEstado').value=filters.estado}
+function renderKpis(){const ents=entidades();const total=flota.length;const pend=actividades.filter(a=>a.Estado!=='Completada').length;$('kpis').innerHTML=`<div class="kpi"><div class="n">${ents.length}</div><div class="l">Entidades</div></div><div class="kpi"><div class="n">${total}</div><div class="l">Unidades</div></div><div class="kpi"><div class="n">${pend}</div><div class="l">Pendientes</div></div>`}
+function renderList(){const ents=filteredEntidades();if(!selectedRuc&&ents[0])selectedRuc=ents[0].RUC;$('entityList').innerHTML=ents.length?ents.map(e=>{const c=counts(e.RUC);return `<div class="entity ${e.RUC===selectedRuc?'active':''}" onclick="selectEntity('${esc(e.RUC)}')"><div class="name">${esc(e.Empresa)}</div><div class="meta">RUC ${esc(e.RUC)} · ${esc(e.Mina)} · ${esc(e.Region)}</div><div class="badges"><span class="badge b-blue">C ${c.Camiones}</span><span class="badge b-green">B ${c.Buses}</span><span class="badge b-amber">VCE ${c.VCE}</span></div></div>`}).join(''):'<div class="empty">Sin resultados.</div>'}
+function selectEntity(ruc){selectedRuc=ruc;activeTab='resumen';renderAll();const e=entidades().find(x=>x.RUC===ruc);if(e&&map&&!$('mapWrap').classList.contains('hidden'))map.setView([e.Latitud,e.Longitud],8)}
+function setTab(t){activeTab=t;renderDetail()}
+function renderDetail(){const e=entidades().find(x=>x.RUC===selectedRuc);if(!e){$('detail').innerHTML='<div class="empty">Selecciona una entidad.</div>';return}$('detail').innerHTML=`<div class="head"><h2>${esc(e.Empresa)}</h2><p>RUC ${esc(e.RUC)} · ${esc(e.Mina)} · ${esc(e.Region)} · Lat ${e.Latitud||'-'} / Long ${e.Longitud||'-'}</p></div><div class="tabs"><button class="tab ${activeTab==='resumen'?'active':''}" onclick="setTab('resumen')">Resumen</button><button class="tab ${activeTab==='flota'?'active':''}" onclick="setTab('flota')">Flota</button><button class="tab ${activeTab==='lineas'?'active':''}" onclick="setTab('lineas')">Estado por línea</button><button class="tab ${activeTab==='actividades'?'active':''}" onclick="setTab('actividades')">Actividades</button></div><div class="content">${tabHtml(e)}</div>`}
+function tabHtml(e){if(activeTab==='resumen')return tabResumen(e);if(activeTab==='flota')return tabFlota(e);if(activeTab==='lineas')return tabLineas(e);return tabActividades(e)}
+function tabResumen(e){
+  const c=counts(e.RUC), f=fleetByRuc(e.RUC), a=actsByRuc(e.RUC);
+  const pendientes=a.filter(x=>x.Estado==='Pendiente').length;
+  const proceso=a.filter(x=>x.Estado==='En proceso').length;
+  const completadas=a.filter(x=>x.Estado==='Completada').length;
+  const totalActs=a.length;
+  const pctDone=totalActs?Math.round((completadas/totalActs)*100):0;
+  const marcas=[...new Set(f.map(x=>x.Marca).filter(Boolean))];
+  const ultimas=[...a].sort((x,y)=>(y.Fecha||'').localeCompare(x.Fecha||'')).slice(0,4);
+  return `<div class="dashboard-entity">
+    <div class="hero-box">
+      <div class="hero-title">Vista ejecutiva de la entidad</div>
+      <div class="hero-value">${f.length}</div>
+      <div class="hero-sub">unidades registradas en flota · ${marcas.length||0} marca(s)</div>
+      <div class="line-mini"><span style="width:${Math.min(100,pctDone)}%"></span></div>
+      <div class="small" style="margin-top:6px">Avance de actividades completadas: ${pctDone}%</div>
+    </div>
+    <div class="dash-card"><div class="n">${pendientes}</div><div class="l">Pendientes</div></div>
+    <div class="dash-card"><div class="n">${proceso}</div><div class="l">En proceso</div></div>
+    <div class="dash-card"><div class="n">${completadas}</div><div class="l">Completadas</div></div>
+  </div>
+  <div class="grid" style="margin-bottom:14px">
+    <div class="box"><div class="v">${c.Camiones}</div><div class="l">Camiones</div></div>
+    <div class="box"><div class="v">${c.Buses}</div><div class="l">Buses</div></div>
+    <div class="box"><div class="v">${c.VCE}</div><div class="l">VCE</div></div>
+  </div>
+  <div class="summary-panel">
+    <div class="box"><div class="label">Contacto principal</div><div class="value">${esc(e.Contacto||'Sin contacto')}</div><div class="small">${esc(e.Cargo||'')}</div><div class="small mono" style="margin-top:6px">${esc(e.Correo||'Sin correo')} · ${esc(e.Telefono||'Sin teléfono')}</div></div>
+    <div class="box"><div class="label">Últimas actividades</div><div class="quick-list">${ultimas.length?ultimas.map(x=>`<div class="quick-row"><span>${esc(x.Fecha)} · ${esc(x.TipoActividad)}</span><b>${esc(x.Estado)}</b></div>`).join(''):'<div class="small">Aún no hay actividades registradas.</div>'}</div></div>
+  </div>`
+}
+function tabFlota(e){const f=fleetByRuc(e.RUC);return f.length?`<table><thead><tr><th>Línea</th><th>Marca</th><th>Modelo</th><th>Placa</th><th>Estado</th><th>Ubicación</th></tr></thead><tbody>${f.map(x=>`<tr><td>${esc(x.Linea)}</td><td>${esc(x.Marca)}</td><td>${esc(x.Modelo)}</td><td>${esc(x.Placa)}</td><td>${esc(x.Estado)}</td><td>${esc(x.Ubicacion)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Sin flota registrada.</div>'}
+function relBadge(s){if(s==='Cliente activo')return'b-green';if(s==='En negociación'||s==='En evaluación')return'b-blue';if(s==='Prospecto')return'b-amber';return'b-gray'}
+function tabLineas(e){
+  const lns=ensureLineas(e.RUC);
+  return `<div class="op-intro"><div><b>Estado Volvo por línea</b><p>Esta sección sirve para indicar cómo estamos posicionados con la minera en Camiones, Buses y VCE: estado actual, potencial y siguiente paso. No registra ventas.</p></div></div><div class="lineas">${LINEAS.map(l=>{
+    const d=lns[l], cnt=counts(e.RUC)[l];
+    return `<div class="linea-card">
+      <div class="linea-head"><div><h3>${l}</h3><div class="sub">Flota actual según Excel: ${cnt} unidad(es)</div></div><span class="badge ${relBadge(d.EstadoRelacion)}">${esc(d.EstadoRelacion)}</span></div>
+      <div class="linea-fields">
+        <div><label>Situación Volvo</label><select onchange="updateLinea('${e.RUC}','${l}','EstadoRelacion',this.value)"><option ${d.EstadoRelacion==='Cliente activo'?'selected':''}>Cliente activo</option><option value="En negociación" ${d.EstadoRelacion==='En negociación'||d.EstadoRelacion==='En evaluación'?'selected':''}>En evaluación</option><option ${d.EstadoRelacion==='Prospecto'?'selected':''}>Prospecto</option><option ${d.EstadoRelacion==='Sin oportunidad'?'selected':''}>Sin oportunidad</option></select></div>
+        <div><label>Potencial estimado</label><input type="number" value="${Number(d.Valor||0)}" onchange="updateLinea('${e.RUC}','${l}','Valor',this.value)"><div class="small">${money(d.Valor)}</div></div>
+      </div>
+      <label>Próxima acción / observaciones</label><textarea onchange="updateLinea('${e.RUC}','${l}','Nota',this.value)" placeholder="Ej. Reunión con logística, renovar flota, evaluar proveedor actual...">${esc(d.Nota||'')}</textarea>
+    </div>`}).join('')}</div>`
+}
+function tabActividades(e){
+  const allActs=actsByRuc(e.RUC).sort((a,b)=>(b.Fecha||'').localeCompare(a.Fecha||''));
+  const acts=activityLineFilter==='all' ? allActs : allActs.filter(a=>a.LineaNegocio===activityLineFilter);
+  const pending=acts.filter(a=>a.Estado!=='Completada').length;
+  const countLabel=activityLineFilter==='all' ? 'todas las líneas' : activityLineFilter;
+  return `<div class="activity-toolbar">
+    <div><b style="font-family:var(--display);color:var(--navy)">Seguimiento de actividades</b><div class="small">${acts.length} actividad(es) en ${countLabel} · ${pending} pendiente(s)</div></div>
+    <div class="activity-controls">
+      <div class="activity-filter"><label>Filtrar por línea</label><select id="activityLineFilter" onchange="setActivityLineFilter(this.value)"><option value="all" ${activityLineFilter==='all'?'selected':''}>Todas</option><option value="Camiones" ${activityLineFilter==='Camiones'?'selected':''}>Camiones</option><option value="Buses" ${activityLineFilter==='Buses'?'selected':''}>Buses</option><option value="VCE" ${activityLineFilter==='VCE'?'selected':''}>VCE</option></select></div>
+      <button class="btn" onclick="toggleActivityForm()" id="newActivityBtn">Nueva actividad</button>
+    </div>
+  </div>
+  <div class="box activity-form-card" id="activityFormCard">
+    <div class="formGrid"><div><label>Fecha</label><input type="date" id="actFecha" value="${new Date().toISOString().slice(0,10)}"></div><div><label>Tipo</label><select id="actTipo"><option>Llamada</option><option>Visita</option><option>Reunión</option><option>Correo</option><option>Cotización</option></select></div><div><label>Línea</label><select id="actLinea"><option ${activityLineFilter==='Camiones'?'selected':''}>Camiones</option><option ${activityLineFilter==='Buses'?'selected':''}>Buses</option><option ${activityLineFilter==='VCE'?'selected':''}>VCE</option></select></div><div><label>Estado</label><select id="actEstado"><option>Pendiente</option><option>En proceso</option><option>Completada</option></select></div><div><label>Responsable</label><input id="actResp" placeholder="Nombre"></div><div class="full"><label>Descripción</label><textarea id="actDesc" placeholder="Detalle del seguimiento..."></textarea></div><div class="full"><label>Próxima acción</label><input id="actNext" placeholder="Ej. Enviar cotización el viernes"></div></div><br><div class="actions"><button class="btn" onclick="addActivity()">Guardar actividad</button><button class="btn light" onclick="toggleActivityForm(false)">Cancelar</button></div>
+  </div>
+  ${acts.length?acts.map(a=>`<div class="activity ${a.Estado==='Completada'?'done':a.Estado==='En proceso'?'process':''}"><div><b>${esc(a.TipoActividad)} · ${esc(a.LineaNegocio)}</b> <span class="status-chip ${a.Estado==='Completada'?'status-done':a.Estado==='En proceso'?'status-proc':'status-pend'}">${esc(a.Estado)}</span><div class="small">${esc(a.Fecha)} · ${esc(a.Responsable)}</div><p>${esc(a.Descripcion)}</p>${a.ProximaAccion?`<div class="small">Próxima acción: ${esc(a.ProximaAccion)}</div>`:''}</div><div class="actions">${a.Estado!=='Completada'?`<button class="btn light small" onclick="askCompleteAct('${a.ID||a.localId}')">Completar</button>`:''}<button class="btn danger small" onclick="askDeleteAct('${a.ID||a.localId}')">Eliminar</button></div></div>`).join(''):`<div class="empty">No hay actividades para ${countLabel}. Usa <b>Nueva actividad</b> para registrar seguimiento.</div>`}`
+}
+function setActivityLineFilter(value){
+  activityLineFilter=value;
+  renderDetail();
+}
+async function updateLinea(ruc,linea,field,val){
+  const d=ensureLineas(ruc)[linea];
+  d[field]=field==='Valor'?Number(val||0):val;
+  saveLocal();
+  if(SP_CONFIG.enabled){
+    try{
+      const e=entidades().find(x=>x.RUC===ruc) || {};
+      const body={Title:e.Empresa||ruc,RUC:ruc,Empresa:e.Empresa||'',Linea:linea,EstadoRelacion:d.EstadoRelacion||'Sin oportunidad',Observacion:d.Nota||'',ProximaAccion:d.Nota||''};
+      if(d.ID) await spMerge(SP_CONFIG.lists.estado,d.ID,body);
+      else { const created=await spPost(SP_CONFIG.lists.estado,body); d.ID=created.ID; saveLocal(); }
+    }catch(err){ alert('No se pudo guardar Estado Volvo en SharePoint: '+err.message); }
+  }
+  renderAll();
+}
+function toggleHistory(id){const el=$('hist-'+id);if(el)el.classList.toggle('show')}
+async function addVenta(ruc,linea){const v={localId:'local-v-'+Date.now(),RUC:ruc,LineaNegocio:linea,Fecha:$(`v-${ruc}-${linea}-Fecha`).value,Responsable:$(`v-${ruc}-${linea}-Resp`).value||'Sin asignar',Unidades:Number($(`v-${ruc}-${linea}-Un`).value||0),Monto:Number($(`v-${ruc}-${linea}-Monto`).value||0),Comentario:$(`v-${ruc}-${linea}-Com`).value};if(!v.Comentario){$(`v-${ruc}-${linea}-Com`).focus();return}if(SP_CONFIG.enabled){const c=await spPost(SP_CONFIG.lists.ventas,{Title:linea,RUC:ruc,LineaNegocio:linea,Fecha:v.Fecha,Responsable:v.Responsable,Unidades:v.Unidades,Monto:v.Monto,Comentario:v.Comentario});v.ID=c.ID}ventas.push(v);saveLocal();renderAll()}
+async function addActivity(){const e=entidades().find(x=>x.RUC===selectedRuc);const act={localId:'local-'+Date.now(),RUC:e.RUC,Empresa:e.Empresa,Fecha:$('actFecha').value,TipoActividad:$('actTipo').value,LineaNegocio:$('actLinea').value,Responsable:$('actResp').value||'Sin asignar',Estado:$('actEstado').value,Descripcion:$('actDesc').value,ProximaAccion:$('actNext').value};if(!act.Descripcion){$('actDesc').focus();return}if(SP_CONFIG.enabled){const c=await spPost(SP_CONFIG.lists.actividades,{Title:act.Empresa,RUC:act.RUC,Empresa:act.Empresa,Fecha:act.Fecha,TipoActividad:act.TipoActividad,LineaNegocio:act.LineaNegocio,Responsable:act.Responsable,Estado:act.Estado,Descripcion:act.Descripcion,ProximaAccion:act.ProximaAccion});act.ID=c.ID}actividades.push(act);saveLocal();renderAll()}
+function askDeleteAct(id){pendingDelete=id;$('modalTitle').textContent='Eliminar actividad';$('modalText').textContent='¿Confirmas que deseas eliminar esta actividad?';$('confirmDeleteBtn').textContent='Sí, eliminar';$('confirmDeleteBtn').className='btn danger';$('confirmDeleteBtn').onclick=deleteActivity;$('modalBack').style.display='flex'}
+function closeModal(){pendingDelete=null;$('modalBack').style.display='none';$('confirmDeleteBtn').textContent='Sí, eliminar';$('confirmDeleteBtn').className='btn danger'}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.getElementById('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack')closeModal()});
+async function deleteActivity(){const a=actividades.find(x=>(x.ID||x.localId)==pendingDelete);if(SP_CONFIG.enabled&&a&&a.ID)await spDelete(SP_CONFIG.lists.actividades,a.ID);actividades=actividades.filter(x=>(x.ID||x.localId)!=pendingDelete);saveLocal();closeModal();renderAll()}
+function toggleActivityForm(force){
+  const form=$('activityFormCard'); if(!form)return;
+  const show = force===undefined ? !form.classList.contains('show') : force;
+  form.classList.toggle('show', show);
+  const btn=$('newActivityBtn'); if(btn)btn.textContent=show?'Cerrar formulario':'Nueva actividad';
+}
+function askCompleteAct(id){
+  pendingDelete=id;
+  $('modalTitle').textContent='Completar actividad';
+  $('modalText').textContent='¿Confirmas que esta actividad ya fue completada?';
+  $('confirmDeleteBtn').textContent='Sí, completar';
+  $('confirmDeleteBtn').className='btn';
+  $('confirmDeleteBtn').onclick=completeActivity;
+  $('modalBack').style.display='flex';
+}
+async function completeActivity(){
+  await changeActStatus(pendingDelete,'Completada');
+  closeModal();
+}
+async function changeActStatus(id,status){
+  const a=actividades.find(x=>(x.ID||x.localId)==id);
+  if(a){
+    a.Estado=status;
+    if(status==='Completada') a.FechaCierre=new Date().toISOString().slice(0,10);
+    if(SP_CONFIG.enabled && a.ID){
+      try{ await spMerge(SP_CONFIG.lists.actividades,a.ID,{Estado:a.Estado,FechaCierre:a.FechaCierre||null}); }
+      catch(err){ alert('No se pudo actualizar la actividad en SharePoint: '+err.message); }
+    }
+    saveLocal();
+    renderAll();
+  }
+}
+
+function parseCSV(text){const lines=text.split(/\r?\n/).filter(Boolean);const headers=lines.shift().split(',').map(h=>h.trim());return lines.map(line=>{const cols=line.split(',').map(c=>c.trim());const o={};headers.forEach((h,i)=>o[h]=cols[i]||'');return normRow(o)})}
+$('csvFile').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{flota=parseCSV(r.result);selectedRuc=null;lineas={};ventas=[];actividades=[];saveLocal();renderAll();alert('CSV importado. La flota se cuenta por RUC según cantidad de filas.')};r.readAsText(file,'UTF-8')});
+$('search').addEventListener('input',e=>{filters.search=e.target.value;renderAll()});$('fRegion').addEventListener('change',e=>{filters.region=e.target.value;renderAll()});$('fLinea').addEventListener('change',e=>{filters.linea=e.target.value;renderAll()});$('fEstado').addEventListener('change',e=>{filters.estado=e.target.value;renderAll()});
+function renderAll(){renderFilters();renderKpis();renderList();renderMap();renderDetail()}
+(async()=>{
+  initMap();
+  try{ await loadData(); }
+  catch(e){
+    console.error('Error SharePoint:', e);
+    alert('No se pudo conectar con SharePoint. Se usará modo local. Detalle: '+e.message);
+    $('dataMode').textContent='Demo/local por error de conexión';
+    SP_CONFIG.enabled=false;
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
